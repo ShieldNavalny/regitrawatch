@@ -10,25 +10,25 @@ from shared_lock import driver_lock
 
 def start_keep_alive(driver, interval=60):
     def _keep_alive():
-        wait = WebDriverWait(driver, 10)
-
         while True:
-            try:
-                with driver_lock:
+            acquired = driver_lock.acquire(timeout=1)
+            if acquired:
+                try:
                     driver.switch_to.window(driver.window_handles[-1])
-                    driver.get("https://vp.regitra.lt/#/paslaugos")
-                    wait.until(EC.url_contains("/paslaugos"))
+                    driver.refresh()
                     print("[keep_alive] Страница обновлена.")
-                time.sleep(interval)
-            except Exception as e:
-                print(f"[keep_alive] Ошибка: {e}")
-                break
+                except Exception as e:
+                    print(f"[keep_alive] Ошибка при обновлении: {e}")
+                finally:
+                    driver_lock.release()
+            time.sleep(interval)
 
-    # Открыть вкладку один раз и оставить её
+    # Открыть вкладку один раз и оставить её на /paslaugos
     with driver_lock:
         driver.execute_script("window.open('');")
         driver.switch_to.window(driver.window_handles[-1])
         driver.get("https://vp.regitra.lt/#/paslaugos")
+        WebDriverWait(driver, 10).until(EC.url_contains("/paslaugos"))
 
     thread = threading.Thread(target=_keep_alive, daemon=True)
     thread.start()
