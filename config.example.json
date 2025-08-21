@@ -14,6 +14,8 @@
     "debug": false,
     "check_interval_sec": 60,
     "timeout_sec": 30,
-    "captchaapikey": "PASTEYOURKEYHERE"
+    "captchaapikey": "PASTEYOURKEYHERE",
+    "retry_on_fail": true,
+    "retry_on_success": true
   }
 }

@@ -52,59 +52,69 @@ def accept_cookies(driver, timeout=10):
 
 def main():
     config = load_config()
-    driver = create_driver(config)
-    prasymo_nr = config["request"]["prasymo_nr"]
 
-    try:
-        if cookies_exist():
-            print("[main] Загружаем cookies...")
-            driver.get("https://vp.regitra.lt/")
-            accept_cookies(driver)
-            load_cookies(driver)
-            driver.get(f"https://vp.regitra.lt/#/egzaminas/{prasymo_nr}")
-            time.sleep(2)
+    while True:
+        driver = create_driver(config)
+        prasymo_nr = config["request"]["prasymo_nr"]
 
-            try:
-                WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Keisti datą ir laiką')]"))
-                )
-                print("[main] Cookies валидны.")
-            except Exception:
-                print("[main] Cookies устарели, очищаем сессию...")
-                driver.delete_all_cookies()
-                driver.execute_script("window.localStorage.clear(); window.sessionStorage.clear();")
+        try:
+            if cookies_exist():
+                print("[main] Загружаем cookies...")
                 driver.get("https://vp.regitra.lt/")
+                accept_cookies(driver)
+                load_cookies(driver)
+                driver.get(f"https://vp.regitra.lt/#/egzaminas/{prasymo_nr}")
                 time.sleep(2)
 
-                print("[main] Повторный вход через Swedbank...")
+                try:
+                    WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Keisti datą ir laiką')]"))
+                    )
+                    print("[main] Cookies валидны.")
+                except Exception:
+                    print("[main] Cookies устарели, очищаем сессию...")
+                    driver.delete_all_cookies()
+                    driver.execute_script("window.localStorage.clear(); window.sessionStorage.clear();")
+                    driver.get("https://vp.regitra.lt/")
+                    time.sleep(2)
+
+                    print("[main] Повторный вход через Swedbank...")
+                    login(driver, {
+                        "swedbank_id": config["credentials"]["login"],
+                        "asmens_kodas": config["credentials"]["asmens_kodas"]
+                    })
+                    save_cookies(driver)
+            else:
+                print("[main] Вход через Swedbank...")
                 login(driver, {
                     "swedbank_id": config["credentials"]["login"],
                     "asmens_kodas": config["credentials"]["asmens_kodas"]
                 })
                 save_cookies(driver)
-        else:
-            print("[main] Вход через Swedbank...")
-            login(driver, {
-                "swedbank_id": config["credentials"]["login"],
-                "asmens_kodas": config["credentials"]["asmens_kodas"]
-            })
-            save_cookies(driver)
 
-        start_keep_alive(driver)
+            start_keep_alive(driver)
 
-        while True:
-            print("[main] Проверка расписания...")
-            success = go_to_exam_schedule(driver)
-            if success:
-                print("[main] Слот найден или регистрация выполнена.")
+            while True:
+                print("[main] Проверка расписания...")
+                success = go_to_exam_schedule(driver)
+                if success:
+                    print("[main] Слот найден или регистрация выполнена.")
+                    if not config["settings"].get("retry_on_success", False):
+                        return
+                    print("[main] Повторный поиск включён — продолжаем мониторинг...")
+                print("[main] Повтор через", config["settings"]["check_interval_sec"], "секунд...")
+                time.sleep(config["settings"]["check_interval_sec"])
+
+        except Exception as e:
+            print(f"[main] Ошибка: {e}")
+            if not config["settings"].get("retry_on_fail", False):
                 break
-            print("[main] Повтор через", config["settings"]["check_interval_sec"], "секунд...")
-            time.sleep(config["settings"]["check_interval_sec"])
+            print("[main] Перезапуск из-за ошибки...")
+            time.sleep(5)
 
-    except Exception as e:
-        print(f"[main] Ошибка: {e}")
-    finally:
-        driver.quit()
+        finally:
+            driver.quit()
+
 
 
 if __name__ == "__main__":
