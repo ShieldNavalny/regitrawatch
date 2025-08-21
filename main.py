@@ -2,12 +2,12 @@
 
 import json
 import time
+import undetected_chromedriver as uc
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import undetected_chromedriver as uc
 from session.cookies import cookies_exist, load_cookies, save_cookies
 from session.login import login
 from session.keepalive import start_keep_alive
@@ -17,9 +17,6 @@ from watcher.checker import go_to_exam_schedule
 def load_config(path="config.json"):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
-
-
-
 
 def create_driver(config):
     options = uc.ChromeOptions()
