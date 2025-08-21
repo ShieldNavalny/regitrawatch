@@ -17,31 +17,25 @@ def load_config(path="config.json"):
 def inject_token(driver, token):
     driver.switch_to.default_content()
 
-    # Найти iframe с капчей
-    iframe = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "iframe[src*='recaptcha']"))
-    )
-    driver.switch_to.frame(iframe)
-
-    # Вставить токен в textarea
+    # Вставить токен напрямую в textarea (она в основном DOM)
     driver.execute_script("""
-        const textarea = document.querySelector('textarea[name="g-recaptcha-response"]');
+        const textarea = document.querySelector('textarea#g-recaptcha-response');
+        if (!textarea) throw new Error("Textarea not found");
         textarea.value = arguments[0];
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
         textarea.dispatchEvent(new Event('change', { bubbles: true }));
     """, token)
 
-    driver.switch_to.default_content()
-
-    # Вызвать AngularJS $apply, чтобы он увидел изменения
+    # Вызвать AngularJS обработку
     driver.execute_script("""
-        const el = document.querySelector('form[name="examForm"]');
-        if (window.angular && angular.element(el).scope()) {
-            angular.element(el).scope().$apply();
+        const scope = angular.element(document.querySelector('[vc-recaptcha]')).scope();
+        if (scope && scope.setResponse) {
+            scope.$apply(() => scope.setResponse(arguments[0]));
         }
-    """)
+    """, token)
 
     time.sleep(1)
+
 
 
 def solve_recaptcha(site_key, page_url, max_wait=120):
