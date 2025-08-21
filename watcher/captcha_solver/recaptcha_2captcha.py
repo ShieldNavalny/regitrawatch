@@ -17,10 +17,11 @@ def load_config(path="config.json"):
 def inject_token(driver, token):
     driver.switch_to.default_content()
 
-    # Вставить токен напрямую в textarea (она в основном DOM)
+    # Вставить токен по name, а не по id (ID меняется каждый вызов на +1)
     driver.execute_script("""
-        const textarea = document.querySelector('textarea#g-recaptcha-response');
+        const textarea = document.querySelector('textarea[name="g-recaptcha-response"]');
         if (!textarea) throw new Error("Textarea not found");
+        textarea.style.display = 'block';
         textarea.value = arguments[0];
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
         textarea.dispatchEvent(new Event('change', { bubbles: true }));
@@ -38,7 +39,8 @@ def inject_token(driver, token):
 
 
 
-def solve_recaptcha(site_key, page_url, max_wait=120):
+
+def solve_recaptcha(site_key, page_url, max_wait=240):
     config = load_config()
     API_KEY = config["settings"]["captchaapikey"]
     print("[2captcha] Отправка задачи...")
