@@ -1,0 +1,114 @@
+# main.py
+
+import json
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import undetected_chromedriver as uc
+from session.cookies import cookies_exist, load_cookies, save_cookies
+from session.login import login
+from session.keepalive import start_keep_alive
+from watcher.checker import go_to_exam_schedule
+
+
+def load_config(path="config.json"):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+
+
+def create_driver(config):
+    options = uc.ChromeOptions()
+    if config["settings"]["headless"]:
+        options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+
+    driver = uc.Chrome(options=options, headless=config["settings"]["headless"])
+    driver.set_page_load_timeout(config["settings"]["timeout_sec"])
+    return driver
+
+
+
+def accept_cookies(driver, timeout=10):
+    try:
+        print("[cookies] Ждём появления кнопки 'Принять все'...")
+        btn = WebDriverWait(driver, timeout).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "a.cmpboxbtnyes"))
+        )
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn)
+        driver.execute_script("arguments[0].click();", btn)
+        print("[cookies] Клик по кнопке 'Принять все' выполнен.")
+
+        WebDriverWait(driver, timeout).until(
+            EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.cmpboxinner"))
+        )
+        print("[cookies] Баннер исчез.")
+    except Exception as e:
+        print(f"[cookies] Не удалось принять куки: {e}")
+
+
+def main():
+    config = load_config()
+    driver = create_driver(config)
+    prasymo_nr = config["request"]["prasymo_nr"]
+
+    try:
+        if cookies_exist():
+            print("[main] Загружаем cookies...")
+            driver.get("https://vp.regitra.lt/")
+            accept_cookies(driver)
+            load_cookies(driver)
+            driver.get(f"https://vp.regitra.lt/#/egzaminas/{prasymo_nr}")
+            time.sleep(2)
+
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Keisti datą ir laiką')]"))
+                )
+                print("[main] Cookies валидны.")
+            except Exception:
+                print("[main] Cookies устарели, очищаем сессию...")
+                driver.delete_all_cookies()
+                driver.execute_script("window.localStorage.clear(); window.sessionStorage.clear();")
+                driver.get("https://vp.regitra.lt/")
+                time.sleep(2)
+
+                print("[main] Повторный вход через Swedbank...")
+                login(driver, {
+                    "swedbank_id": config["credentials"]["login"],
+                    "asmens_kodas": config["credentials"]["asmens_kodas"]
+                })
+                save_cookies(driver)
+        else:
+            print("[main] Вход через Swedbank...")
+            login(driver, {
+                "swedbank_id": config["credentials"]["login"],
+                "asmens_kodas": config["credentials"]["asmens_kodas"]
+            })
+            save_cookies(driver)
+
+        start_keep_alive(driver)
+
+        while True:
+            print("[main] Проверка расписания...")
+            success = go_to_exam_schedule(driver)
+            if success:
+                print("[main] Слот найден или регистрация выполнена.")
+                break
+            print("[main] Повтор через", config["settings"]["check_interval_sec"], "секунд...")
+            time.sleep(config["settings"]["check_interval_sec"])
+
+    except Exception as e:
+        print(f"[main] Ошибка: {e}")
+    finally:
+        driver.quit()
+
+
+if __name__ == "__main__":
+    main()
