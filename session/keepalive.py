@@ -11,7 +11,7 @@ session_expired = threading.Event()
 
 def start_keep_alive(driver, config):
     interval = config["settings"].get("keep_alive_interval_sec", 60)
-    
+
     def _keep_alive():
         while not session_expired.is_set():
             acquired = driver_lock.acquire(timeout=1)
@@ -19,22 +19,34 @@ def start_keep_alive(driver, config):
                 try:
                     driver.switch_to.window(driver.window_handles[-1])
                     driver.get("https://vp.regitra.lt/#/paslaugos")
-                    print("[keep_alive] Страница обновлена.")
+                    print("[keep_alive] Refreshed /paslaugos")
 
-                    current_url = driver.current_url
-                    if current_url.rstrip('/') == "https://vp.regitra.lt/#":
-                        time.sleep(3)
-                        if driver.current_url.rstrip('/') == "https://vp.regitra.lt/#":
-                            print("[keep_alive] Сессия истекла.")
+                    time.sleep(5)  # дать время на возможный редирект
+
+                    current_url = driver.current_url.rstrip("/")
+                    if current_url == "https://vp.regitra.lt/#":
+                        try:
+                            WebDriverWait(driver, 5).until(
+                                EC.presence_of_element_located(
+                                    (By.XPATH, "//*[contains(text(), 'Prisijunk ir galėsi')]")
+                                )
+                            )
+                            print("[keep_alive] Session expired — detected login prompt.")
                             session_expired.set()
+                        except:
+                            print("[keep_alive] Session expired — redirected without expected text.")
+                            session_expired.set()
+                    else:
+                        print("[keep_alive] Session is alive.")
 
                 except Exception as e:
-                    print(f"[keep_alive] Ошибка при обновлении: {e}")
+                    print(f"[keep_alive] Error during keep-alive: {e}")
                 finally:
                     driver_lock.release()
+
             time.sleep(interval)
-            
-    #Вкладка paslaugos
+
+    # Open keep-alive tab
     with driver_lock:
         driver.execute_script("window.open('');")
         driver.switch_to.window(driver.window_handles[-1])
