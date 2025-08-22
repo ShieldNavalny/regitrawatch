@@ -4,6 +4,7 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
 from notifier.telegram_bot import notify
 
 
@@ -41,7 +42,9 @@ def login(driver, config):
 
     # 8. Ждать появления контрольного кода
     code_container = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'kontrolinis kodas')]/..")))
+    # Ждём, пока в элементе появится непустой текст
     code_elem = wait.until(EC.presence_of_element_located((By.ID, "ui-signing-code-sid")))
+    wait.until(lambda d: code_elem.text.strip() != "")
     code_text = code_elem.text.strip()
     print(f"[login] Ждём подтверждение входа в приложении банка. Код: {code_text}")
     notify("🔐 Вход в банк", f"Подтвердите вход в Swedbank.\nКод: <b>{code_text}</b>")
