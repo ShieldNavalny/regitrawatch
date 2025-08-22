@@ -160,8 +160,4 @@ You are responsible for complying with Regitra's terms of service.
 ---
 
 ## 📄 License
-
-MIT
-```
-
----
+GPL 3.0
