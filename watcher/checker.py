@@ -57,7 +57,7 @@ def go_to_exam_schedule(driver):
 
             print(f"[checker] Найден sitekey: {sitekey}")
             print("[checker] Решаем капчу через 2Captcha...")
-            token = recaptcha_2captcha.solve_recaptcha(sitekey, page_url)
+            token = recaptcha_2captcha.solve_recaptcha(sitekey, page_url, config)
             if token:
                 print("[checker] Вставляем токен...")
                 recaptcha_2captcha.inject_token(driver, token)

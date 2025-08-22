@@ -40,7 +40,8 @@ def inject_token(driver, token):
 
 
 
-def solve_recaptcha(site_key, page_url, max_wait=240):
+def solve_recaptcha(site_key, page_url, config):
+    max_wait = config["settings"].get("captcha_max_wait_sec", 240)
     config = load_config()
     API_KEY = config["settings"]["captchaapikey"]
     print("[2captcha] Отправка задачи...")
