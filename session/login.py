@@ -39,10 +39,10 @@ def login(driver, config):
     driver.find_element(By.XPATH, "//button[contains(text(), 'Prisijungti')]").click()
 
     # 8. Ждать появления контрольного кода
-    code_elem = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'kontrolinis kodas')]")))
+    code_container = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'kontrolinis kodas')]/..")))
+    code_elem = wait.until(EC.presence_of_element_located((By.ID, "ui-signing-code-sid")))
     code_text = code_elem.text.strip()
-    print(f"[login] Ждём подтверждение входа в приложении банка. {code_text}")
-
+    print(f"[login] Ждём подтверждение входа в приложении банка. Код: {code_text}")
     # TODO: отправить уведомление в Telegram с кодом
 
     # 9. Ждать редиректа на banklink/auth (увеличено до 5 минут)

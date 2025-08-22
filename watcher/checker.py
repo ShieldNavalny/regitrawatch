@@ -89,10 +89,15 @@ def go_to_exam_schedule(driver):
                 day_text = block.find_element(By.CSS_SELECTOR, "p.col-sm-2 b").text.strip()
                 day = day_text.replace("d.", "").strip().zfill(2)
                 month_header = block.find_element(By.XPATH, "./preceding-sibling::h4[1]").text.strip()
+                current_month = None
                 for name, num in month_map.items():
                     if name in month_header:
                         current_month = num
                         break
+
+                if not current_month:
+                    continue
+                
                 date_str = f"2025-{current_month}-{day}"
                 success_btn = block.find_element(By.CSS_SELECTOR, "button.btn-success")
                 time_str = success_btn.text.strip()
@@ -113,24 +118,25 @@ def go_to_exam_schedule(driver):
                 day_text = block.find_element(By.CSS_SELECTOR, "p.col-sm-2 b").text.strip()
                 day = day_text.replace("d.", "").strip().zfill(2)
                 month_header = block.find_element(By.XPATH, "./preceding-sibling::h4[1]").text.strip()
+
+                current_month = None  # ← добавлено
                 for name, num in month_map.items():
                     if name in month_header:
                         current_month = num
                         break
+
+                if not current_month:
+                    print(f"[checker] Не удалось определить месяц из заголовка: {month_header}")
+                    continue
+
                 date_str = f"2025-{current_month}-{day}"
+                success_btn = block.find_element(By.CSS_SELECTOR, "button.btn-success")
+                time_str = success_btn.text.strip()
+                current_slot_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+                print(f"[checker] Текущий слот (btn-success): {current_slot_dt}")
+                break
             except:
                 continue
-
-            time_buttons = block.find_elements(By.CSS_SELECTOR, "button.btn-primary")
-            for btn in time_buttons:
-                if btn.is_enabled():
-                    try:
-                        time_str = btn.text.strip()
-                        slot_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
-                        if slot_dt < current_slot_dt:
-                            slots.append((slot_dt, btn))
-                    except:
-                        continue
 
         if not slots:
             print("[checker] Нет доступных слотов раньше текущего.")
