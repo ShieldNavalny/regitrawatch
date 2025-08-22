@@ -9,6 +9,8 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support import expected_conditions as EC
 from watcher.captcha_solver import recaptcha_2captcha
 from shared_lock import driver_lock 
+from notifier.telegram_bot import notify
+from notifier.telegram_bot import notify_exception
 
 def load_config(path="config.json"):
     with open(path, "r", encoding="utf-8") as f:
@@ -97,7 +99,7 @@ def go_to_exam_schedule(driver):
 
                 if not current_month:
                     continue
-                
+
                 date_str = f"2025-{current_month}-{day}"
                 success_btn = block.find_element(By.CSS_SELECTOR, "button.btn-success")
                 time_str = success_btn.text.strip()
@@ -146,7 +148,8 @@ def go_to_exam_schedule(driver):
         earliest_slot = slots[0]
 
         if notify_only:
-            print(f"[checker] Найден слот: {earliest_slot[0]} (уведомление TODO)")
+            print(f"[checker] Найден слот: {earliest_slot[0]} (Уведомлен в TG)")
+            notify("📅 Найден слот", f"Доступен слот: <b>{earliest_slot[0]}</b>")
             return True
 
         print(f"[checker] Бронируем слот: {earliest_slot[0]}")
@@ -158,11 +161,14 @@ def go_to_exam_schedule(driver):
             register_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Registruotis')]")))
             register_btn.click()
             print("[checker] Регистрация завершена.")
+            notify("✅ Забронировано", f"Слот успешно забронирован: <b>{earliest_slot[0]}</b>")
             return True
         except Exception as e:
             print(f"[checker] Ошибка при бронировании: {e}")
+            notify_exception("❌ Ошибка при бронировании CHECKER", e)
             return False
 
     except Exception as e:
         print(f"[checker] Ошибка при поиске или бронировании слота: {e}")
+        notify_exception("❌ Ошибка при поиске или бронировании слота CHECKER", e)
         return False

@@ -13,6 +13,8 @@ from session.login import login
 from session.keepalive import start_keep_alive
 from watcher.checker import go_to_exam_schedule
 from session.keepalive import start_keep_alive, session_expired
+from notifier.telegram_bot import notify, notify_exception, start_bot_polling
+
 
 
 def load_config(path="config.json"):
@@ -53,6 +55,8 @@ def accept_cookies(driver, timeout=10):
 
 def main():
     config = load_config()
+    start_bot_polling()
+    notify("🟢 Бот запущен", "Начинаем мониторинг Regitra.")
 
     while True:
         driver = create_driver(config)
@@ -105,6 +109,7 @@ def main():
                     print("[main] Повторный поиск включён — продолжаем мониторинг...")
 
                 if session_expired.is_set():
+                    notify("⚠️ Сессия истекла", "Regitra выкинула нас — перезапускаем.")
                     raise Exception("Сессия Regitra истекла")
 
                 print("[main] Повтор через", config["settings"]["check_interval_sec"], "секунд...")
@@ -112,6 +117,7 @@ def main():
 
         except Exception as e:
             print(f"[main] Ошибка: {e}")
+            notify_exception("❌ Ошибка в main", e)
             if not config["settings"].get("retry_on_fail", False):
                 break
             print("[main] Перезапуск из-за ошибки...")

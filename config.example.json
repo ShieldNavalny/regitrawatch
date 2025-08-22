@@ -19,5 +19,10 @@
     "captchaapikey": "PASTEYOURKEYHERE",
     "retry_on_fail": true,
     "retry_on_success": true
+  },
+  "telegram": {
+    "enabled": false,
+    "token": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+    "usernames": ["@your_username", "@friend_username"]
   }
 }

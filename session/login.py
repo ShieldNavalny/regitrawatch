@@ -4,6 +4,7 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from notifier.telegram_bot import notify
 
 
 def login(driver, config):
@@ -43,7 +44,8 @@ def login(driver, config):
     code_elem = wait.until(EC.presence_of_element_located((By.ID, "ui-signing-code-sid")))
     code_text = code_elem.text.strip()
     print(f"[login] Ждём подтверждение входа в приложении банка. Код: {code_text}")
-    # TODO: отправить уведомление в Telegram с кодом
+    notify("🔐 Вход в банк", f"Подтвердите вход в Swedbank.\nКод: <b>{code_text}</b>")
+
 
     # 9. Ждать редиректа на banklink/auth (увеличено до 5 минут)
     WebDriverWait(driver, 300).until(EC.url_contains("banklink/auth"))
@@ -55,6 +57,7 @@ def login(driver, config):
     wait.until(EC.url_contains("/#/paslaugos"))
 
     print("[login] Успешный вход")
+    notify("✅ Вход выполнен", "Успешно вошли в систему Regitra.")
 
 
 
