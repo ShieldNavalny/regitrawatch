@@ -12,6 +12,7 @@ from session.cookies import cookies_exist, load_cookies, save_cookies
 from session.login import login
 from session.keepalive import start_keep_alive
 from watcher.checker import go_to_exam_schedule
+from session.keepalive import start_keep_alive, session_expired
 
 
 def load_config(path="config.json"):
@@ -102,6 +103,10 @@ def main():
                     if not config["settings"].get("retry_on_success", False):
                         return
                     print("[main] Повторный поиск включён — продолжаем мониторинг...")
+
+                if session_expired.is_set():
+                    raise Exception("Сессия Regitra истекла")
+
                 print("[main] Повтор через", config["settings"]["check_interval_sec"], "секунд...")
                 time.sleep(config["settings"]["check_interval_sec"])
 
