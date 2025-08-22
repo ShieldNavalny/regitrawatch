@@ -39,10 +39,14 @@ def login(driver, config):
     driver.find_element(By.XPATH, "//button[contains(text(), 'Prisijungti')]").click()
 
     # 8. Ждать появления контрольного кода
-    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'kontrolinis kodas')]")))
+    code_elem = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'kontrolinis kodas')]")))
+    code_text = code_elem.text.strip()
+    print(f"[login] Ждём подтверждение входа в приложении банка. {code_text}")
 
-    # 9. Ждать редиректа на banklink/auth
-    wait.until(EC.url_contains("banklink/auth"))
+    # TODO: отправить уведомление в Telegram с кодом
+
+    # 9. Ждать редиректа на banklink/auth (увеличено до 5 минут)
+    WebDriverWait(driver, 300).until(EC.url_contains("banklink/auth"))
 
     # 10. Найти и нажать кнопку отправки данных
     wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='button' and contains(@onclick, 'linkAction')]"))).click()
@@ -51,6 +55,7 @@ def login(driver, config):
     wait.until(EC.url_contains("/#/paslaugos"))
 
     print("[login] Успешный вход")
+
 
 
 # Пример использования:
