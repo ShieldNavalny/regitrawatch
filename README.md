@@ -40,7 +40,8 @@ To receive notifications:
 
 1. Set `"enabled": true` in the `telegram` config section.
 2. Add your `@username` to the `usernames` list.
-3. Start a chat with your bot and send `/start`.
+3. Add a Telegram Bot API key from @BotFather
+4. Start a chat with your bot and send `/start`.
 
 > No restart is needed after `/start`, unless you change the config file.
 
