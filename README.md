@@ -21,6 +21,7 @@ A Python bot that automatically searches for and optionally books available exam
 git clone https://github.com/yourname/regitra-watcher.git
 cd regitra-watcher
 pip install -r requirements.txt
+python ./main.py
 ```
 
 
