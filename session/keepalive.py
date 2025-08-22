@@ -9,7 +9,9 @@ from shared_lock import driver_lock
 
 session_expired = threading.Event()
 
-def start_keep_alive(driver, interval=60):
+def start_keep_alive(driver, config):
+    interval = config["settings"].get("keep_alive_interval_sec", 60)
+    
     def _keep_alive():
         while not session_expired.is_set():
             acquired = driver_lock.acquire(timeout=1)

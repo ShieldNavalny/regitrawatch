@@ -93,7 +93,7 @@ def main():
                 })
                 save_cookies(driver)
 
-            start_keep_alive(driver)
+            start_keep_alive(driver, config)
 
             while True:
                 print("[main] Проверка расписания...")
