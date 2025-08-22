@@ -60,6 +60,7 @@ def main():
 
     while True:
         driver = create_driver(config)
+        session_expired.clear()
         prasymo_nr = config["request"]["prasymo_nr"]
 
         try:
@@ -100,6 +101,10 @@ def main():
             start_keep_alive(driver, config)
 
             while True:
+                if session_expired.is_set():
+                    notify("⚠️ Сессия истекла", "Regitra выкинула нас — перезапускаем.")
+                    raise Exception("Сессия Regitra истекла")
+
                 print("[main] Проверка расписания...")
                 success = go_to_exam_schedule(driver)
                 if success:

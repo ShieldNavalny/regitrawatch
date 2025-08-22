@@ -19,6 +19,7 @@ def start_keep_alive(driver, config):
                 try:
                     driver.switch_to.window(driver.window_handles[-1])
                     driver.get("https://vp.regitra.lt/#/paslaugos")
+                    driver.refresh()
                     print("[keep_alive] Refreshed /paslaugos")
 
                     time.sleep(5)  # дать время на возможный редирект
