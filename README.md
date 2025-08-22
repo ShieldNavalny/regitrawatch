@@ -6,7 +6,7 @@ A Python bot that automatically searches for and optionally books available exam
 
 ## 🚀 Features
 
-- 🔐 Automated login via Swedbank Smart-ID
+- 🔐 Automated login via Swedbank App
 - 🤖 CAPTCHA solving with [2Captcha](https://2captcha.com/)
 - 📅 Slot search and optional auto-booking
 - 📲 Telegram notifications (start, login, slot found, errors, etc.)
