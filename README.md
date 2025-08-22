@@ -61,7 +61,7 @@ To receive notifications:
 
 | Key             | Type   | Description                                      |
 |------------------|--------|--------------------------------------------------|
-| `login`          | string | Swedbank Smart-ID username                       |
+| `login`          | string | Swedbank username                                |
 | `asmens_kodas`   | string | Lithuanian personal ID code (Asmens kodas)       |
 
 ---
@@ -148,7 +148,7 @@ python-telegram-bot>=20.7
 ---
 
 ## 🧠 Notes
-
+- Regitra will kick you out of session after some time no matter what you do. So you should keep your phone under your hand 
 - CAPTCHA solving is done via 2Captcha — make sure your balance is sufficient.
 - The script is designed to run continuously and re-authenticate if needed.
 
