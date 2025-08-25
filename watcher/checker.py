@@ -72,6 +72,20 @@ def go_to_exam_schedule(driver):
                 f.write(driver.page_source)
             return False
 
+        
+        # Получение текущей даты экзамена из текста "Keičiamas egzaminas"
+        try:
+            exam_info_p = driver.find_element(By.XPATH, "//p[span[contains(text(), 'Keičiamas egzaminas')]]")
+            full_text = exam_info_p.text  # "Keičiamas egzaminas 2025-09-25 12:45, Lentvario g. 7, Vilnius"
+            date_part = full_text.split("Keičiamas egzaminas")[-1].strip().split(",")[0]  # "2025-09-25 12:45"
+            current_exam_dt = datetime.strptime(date_part, "%Y-%m-%d %H:%M")
+            print(f"[checker] Текущий экзамен: {current_exam_dt}")
+        except Exception as e:
+            print(f"[checker] Не удалось получить текущую дату экзамена: {e}")
+            current_exam_dt = None
+
+
+
         # Поиск доступных слотов
         try:
             date_blocks = driver.find_elements(By.CSS_SELECTOR, ".row-top")
@@ -84,29 +98,33 @@ def go_to_exam_schedule(driver):
             current_slot_dt = None
             debug_slots = []
 
-            # Определяем текущий слот (btn-success)
-            for block in date_blocks:
-                try:
-                    btn = block.find_element(By.CSS_SELECTOR, "button.btn-success")
-                    day_text = block.find_element(By.CSS_SELECTOR, "p.col-sm-2 b").text.strip()
-                    day = day_text.replace("d.", "").strip().zfill(2)
-                    month_header = block.find_element(By.XPATH, "./preceding-sibling::h4[1]").text.strip()
+            if current_exam_dt:
+                current_slot_dt = current_exam_dt
+                print(f"[checker] Используем текущую дату экзамена как ограничение: {current_slot_dt}")
+            else:
+                # Определяем текущий слот (btn-success)
+                for block in date_blocks:
+                    try:
+                        btn = block.find_element(By.CSS_SELECTOR, "button.btn-success")
+                        day_text = block.find_element(By.CSS_SELECTOR, "p.col-sm-2 b").text.strip()
+                        day = day_text.replace("d.", "").strip().zfill(2)
+                        month_header = block.find_element(By.XPATH, "./preceding-sibling::h4[1]").text.strip()
 
-                    current_month = next((num for name, num in month_map.items() if name in month_header), None)
-                    if not current_month:
+                        current_month = next((num for name, num in month_map.items() if name in month_header), None)
+                        if not current_month:
+                            continue
+
+                        date_str = f"2025-{current_month}-{day}"
+                        time_str = btn.text.strip()
+                        current_slot_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+                        print(f"[checker] Текущий слот (btn-success): {current_slot_dt}")
+                        break
+                    except:
                         continue
-
-                    date_str = f"2025-{current_month}-{day}"
-                    time_str = btn.text.strip()
-                    current_slot_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
-                    print(f"[checker] Текущий слот (btn-success): {current_slot_dt}")
-                    break
-                except:
-                    continue
 
             if not current_slot_dt:
                 current_slot_dt = deadline.replace(hour=23, minute=59)
-                print(f"[checker] btn-success не найден, используем дедлайн: {current_slot_dt}")
+                print(f"[checker] btn-success и текущий экзамен не найдены, используем дедлайн: {current_slot_dt}")
 
             # Сбор всех доступных слотов
             slots = []
@@ -141,7 +159,13 @@ def go_to_exam_schedule(driver):
             if debug and debug_slots:
                 debug_text = "\n".join([f"{dt} — {cls}" for dt, cls in debug_slots])
                 print("[debug] Найденные слоты:\n" + debug_text)
+                print("[debug] Текущая дата экзамена", f"{current_slot_dt}")
+                print("[debug] Дедлайн", f"{deadline}")
+
                 notify("🛠 Debug: Найденные слоты", f"<pre>{debug_text}</pre>")
+                notify("🛠 Debug: Текущая дата экзамена", f"<pre>{current_slot_dt}</pre>")
+                notify("🛠 Debug: Дедлайн", f"<pre>{deadline}</pre>")
+
 
             if not slots:
                 print("[checker] Нет доступных слотов раньше текущего.")
