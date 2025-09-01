@@ -51,7 +51,7 @@ def login(driver, config):
 
 
     # 9. Ждать редиректа на banklink/auth (увеличено до 5 минут)
-    WebDriverWait(driver, 300).until(EC.url_contains("banklink/auth"))
+    WebDriverWait(driver, 121).until(EC.url_contains("banklink/auth"))
 
     # 10. Найти и нажать кнопку отправки данных
     wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='button' and contains(@onclick, 'linkAction')]"))).click()
