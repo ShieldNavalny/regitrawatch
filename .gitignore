@@ -211,3 +211,5 @@ config.json
 sessions
 debug.html
 telegram_users.json
+
+.vscode
