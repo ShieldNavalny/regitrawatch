@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from session.cookies import cookies_exist, load_cookies, save_cookies
 from session.login import login
 from session.keepalive import start_keep_alive
-from watcher.checker import go_to_exam_schedule
+from watcher.checker import go_to_exam_schedule, run_checker_with_both
 from session.keepalive import start_keep_alive, session_expired
 from notifier.telegram_bot import notify, notify_exception, start_bot_polling
 
@@ -106,7 +106,11 @@ def main():
                     raise Exception("Сессия Regitra истекла")
 
                 print("[main] Проверка расписания...")
-                success = go_to_exam_schedule(driver)
+                vehicle_type = config["request"].get("vehicle_type", "regitra")
+                if vehicle_type == "both":
+                    success = run_checker_with_both(driver)
+                else:
+                    success = go_to_exam_schedule(driver)
                 if success:
                     print("[main] Слот найден или регистрация выполнена.")
                     if not config["settings"].get("retry_on_success", False):

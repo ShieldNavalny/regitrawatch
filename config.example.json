@@ -6,7 +6,7 @@
   "request": {
     "prasymo_nr": "12345678",
     "deadline": "2025-09-01",
-    "vehicle_type": "regitra",
+    "vehicle_type": "off",
     "notify_only": false
   },
   "settings": {

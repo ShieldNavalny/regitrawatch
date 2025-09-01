@@ -81,7 +81,7 @@ To receive notifications:
 |------------------|---------|-----------------------------------------------------------------------------|
 | `prasymo_nr`     | string  | Application number (Prašymo Nr.) from Regitra                              |
 | `deadline`       | string  | Latest acceptable exam date (format: `YYYY-MM-DD`)                         |
-| `vehicle_type`   | string  | `"regitra"` (Regitra vehicle) or `"nuosava"` (personal vehicle)            |
+| `vehicle_type`   | string  | `"regitra"` (Regitra vehicle) or `"own"` (personal vehicle) or `"both"` for both. If you want to disable this input anything else            |
 | `notify_only`    | boolean | If `true`, only notifies; if `false`, attempts to auto-book                |
 
 ---
