@@ -10,7 +10,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from session.cookies import cookies_exist, load_cookies, save_cookies
 from session.login import login
-from session.keepalive import start_keep_alive
 from watcher.checker import go_to_exam_schedule, run_checker_with_both
 from session.keepalive import start_keep_alive, session_expired
 from notifier.telegram_bot import notify, notify_exception, start_bot_polling
